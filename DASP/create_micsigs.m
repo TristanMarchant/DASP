@@ -1,8 +1,10 @@
-%TODO: make compliant to variable number of mics and stuff
+% Adapt speechfiles- and noisefiles-array according to the nb of audio and
+% noise elements.
+% mic = matrix(rows = samples, columns = mics)
 
 speechfiles{1} = 'speech1.wav'; %number of speechfiles should be same as audiosrcs in RIR-gui
 %speechfiles{2} = 'speech2.wav';
-noisefiles{1} = 'Babble_noise1.wav';
+%noisefiles{1} = 'Babble_noise1.wav';
 %noisefiles{2} = 'Babble_noise1.wav';
 
 [~, nb_speechfiles] = size(speechfiles);
@@ -59,6 +61,12 @@ for i=1:nb_mics
         mic(:,i) = mic(:,i) + fftfilt( RIR_noise(:, i, j), noise_resampled{j});
     end
 end
+
+figure
+hold on
+plot(mic(:,1));
+plot(mic(:,2),'--r');
+
 % speech1_mic1 = fftfilt(speech1_resampled, RIR_sources(:, 1, 1));
 % speech1_mic2 = fftfilt(speech1_resampled, RIR_sources(:, 2, 1));
 % speech1_mic3 = fftfilt(speech1_resampled, RIR_sources(:, 3, 1));
