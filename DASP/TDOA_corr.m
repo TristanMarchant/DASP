@@ -1,6 +1,6 @@
-
-%s_pos = audiosrc position
-%m_pos = mic positions
+% To be used with 2 mics, 1 audiosrc, 0 noisesrc.
+% s_pos = audiosrc position
+% m_pos = mic positions
 
 load('Computed_RIRs.mat');
 
@@ -77,12 +77,13 @@ end
 [r, lags] = xcorr(mic(:,1), mic(1:1200,2));
 [val, idx] = max(r); %value and index at lags of highest value
 est_delay = lags(idx)/fs_RIR; %lags(idx) is the lag (#samples) with max value
-disp(est_delay);
-disp(delay_groundtruth);
+disp(['...estimated: ', num2str(est_delay)]);
+disp(['...groundtruth: ',num2str(delay_groundtruth)]);
+disp(['...error: ', num2str(abs(est_delay - delay_groundtruth))]);
+disp(['...max allowed error: ', num2str(1/fs_RIR)]); %accuracy = 1/sample rate
 
 timestamps = (lags/fs_RIR)';
-
 figure
-plot(timestamps,r,'.');
+plot(timestamps,r);
 
 
