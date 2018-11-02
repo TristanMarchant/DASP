@@ -54,10 +54,10 @@ for i=1:nb_mics
     end
 end
 
-figure
-hold on
-plot(mic(:,1));
-plot(mic(:,2),'--r');
+%figure
+%hold on
+%plot(mic(:,1));
+%plot(mic(:,2),'--r');
 
 
 

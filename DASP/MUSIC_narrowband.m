@@ -3,7 +3,7 @@ load('Computed_RIRs.mat');
 %--- PARAMETERS ------------------%
 L = 1024; %window
 overlap = 0.5;
-
+Q = size(RIR_sources,3);
 
 %---- CHECK FOR SAMPLE FREQ-------%
 if fs_RIR ~= 44100
@@ -17,8 +17,15 @@ speech_sampled = speech_sampled(1:fs_speech*10); %truncate 10s
 
 audiowrite('speech1_truncated10s.wav',speech_sampled,fs_speech);
 
+speechfile2 = 'speech2.wav';
+[speech_sampled, fs_speech] = audioread(speechfile2);
+speech_sampled = speech_sampled(1:fs_speech*10); %truncate 10s
+
+audiowrite('speech2_truncated10s.wav',speech_sampled,fs_speech);
+
 %---- CREATE MICSIGS ------------%
 speechfiles{1} = 'speech1_truncated10s.wav';
+speechfiles{2} = 'speech2_truncated10s.wav';
 noisefiles{1} = 'Babble_noise1.wav'; %best let one noise file on, even if not used
 mic = create_micsigs_func(speechfiles,noisefiles);
 mic_size = size(mic);
@@ -38,6 +45,7 @@ for i = 1:mic_nb
 %TODO: outputs 513 frequency bins?
 end
 
+
 %---- POWERS PER BIN -----------%
 powers = zeros(nb_freqs, 1);
 for i = 1:nb_freqs
@@ -51,7 +59,46 @@ for i = 1:nb_freqs
 end
 
 [~, freq_maxpower] = max(powers);
+
 %---- PSEUDOSPECTRUM -----------%
+
+omega = 2*pi*(freq_maxpower-0.5)*fs_RIR/L;
+
+thetas = 0:0.5:180;
+n0_thetas = size(thetas,2);
+
+Y = reshape( stft_mtx(:, freq_maxpower, :), mic_nb, nb_times );
+R = Y * Y';
+
+
+[V,D] = eig(R); 
+[~,index] = sort( diag(D), 'descend' ); 
+V_sorted = V(:,index);
+E = V_sorted(:,(Q+1):end); 
+
+G = [ones(1,n0_thetas); zeros(mic_nb-1,n0_thetas)];
+for i = 2:mic_nb
+    distance = m_pos(i,2) - m_pos(1,2);
+    for l = 1:n0_thetas
+        DOA = thetas(l);
+        TDOA = Calculate_TDOA(DOA,distance);
+        G(i,l) = exp(1j*omega*TDOA);
+    end
+end
+
+numerator = diag(G'*(E*E')*G);
+P = 1./numerator;
+
+figure;
+plot(thetas,abs(P));
+
+[~, indexes] = findpeaks(abs(P));
+DOA_est = zeros(1,Q);
+for m = 1:Q
+    DOA_est(m) = thetas(indexes(m));
+end
+
+save DOA_est
 
 %---- DOA OF SPEECH SOURCE -----%
 

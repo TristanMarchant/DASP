@@ -2,7 +2,7 @@
 % s_pos = audiosrc position
 % m_pos = mic positions
 
-speechfiles{1} = 'White_noise1.wav';
+speechfiles{1} = 'speech1.wav';
 noisefiles{1} = 'Babble_noise1.wav'; %just for functionality of function
 [doa_est, error] = DOA_corr_func(speechfiles, noisefiles);
 
