@@ -1,6 +1,4 @@
-% To be used with 2 mics, 1 audiosrc, 0 noisesrc.
-% s_pos = audiosrc position
-% m_pos = mic positions
+%To be used with multiple audio sources
 
 load('Computed_RIRs.mat');
 
@@ -23,7 +21,7 @@ delay_groundtruth = m1_s_arrival - m2_s_arrival; %or abs value?
 speechfiles{1} = 'speech1.wav';
 speechfiles{2} = 'speech2.wav';
 speechfiles{3} = 'speech3.wav';
-noisefiles{1} = 'Babble_noise1.wav';
+noisefiles{1} = 'Babble_noise1.wav'; %just keep one noise file
 %noisefiles{2} = 'Babble_noise1.wav';
 
 [~, nb_speechfiles] = size(speechfiles);
@@ -34,6 +32,12 @@ noisefiles{1} = 'Babble_noise1.wav';
 if check ==0
     nb_noisesrc =0;
 end
+
+for i=1:nb_audiosrc
+    speechfiles{i} = 'speech1.wav';
+end
+nb_speechfiles = nb_audiosrc;
+
 
 nb_min = inf;
 for i=1:nb_speechfiles
