@@ -4,10 +4,11 @@ load('Computed_RIRs.mat');
 
 % --- LOOKING FOR GROUNDTRUTH ----------------------%
 c = 340; %speed of sound 340 m/s
-d = 0.10; %distance between mics in [m]
+
 
 m1_pos = m_pos(1,:);
 m2_pos = m_pos(2,:);
+m1_2_distance = norm(m1_pos - m2_pos);
 
 m1_s_dist = norm(m1_pos - s_pos); %distance between mic1 and audio src
 m2_s_dist = norm(m2_pos - s_pos);
@@ -74,10 +75,13 @@ for j=1:nb_audiosrc
     [r, lags] = xcorr(mic(:,1), mic(:,2)); % adjusted for accuracte autocorr, longer computing though
     [val, idx] = max(r); %value and index at lags of highest value
     est_delay = lags(idx)/fs_RIR;
-    if (est_delay*c/d) > 1
-        DOA_est(j) = acos(1)*180/pi;
+    
+    if (est_delay*c/m1_2_distance) > 1
+        DOA_est(j) = acosd(1);
+    elseif (est_delay*c/m1_2_distance) < -1
+        DOA_est(j) = acosd(-1);
     else
-        DOA_est(j) = acos(est_delay*c/d)*180/pi; %Tested with ground truth should be done with estimate
+        DOA_est(j) = acosd(est_delay*c/m1_2_distance); %Tested with ground truth should be done with estimate
     end
     
     for i=1:nb_mics
@@ -86,26 +90,3 @@ for j=1:nb_audiosrc
 end
 
 save DOA_est
-% for i=1:nb_mics
-%    
-%     for j=1:nb_audiosrc
-%         mic(:,i) = mic(:,i) + fftfilt(RIR_sources(:, i, j), speech_resampled{j});
-%     end
-%     
-%     
-%     for j=1:nb_noisesrc
-%         mic(:,i) = mic(:,i) + fftfilt( RIR_noise(:, i, j), noise_resampled{j});
-%     end
-% end
-% 
-% % --------- END OF COPY ---------------% --------- CROSS CORRELATION
-% % ---------%
-% 
-% [r, lags] = xcorr(mic(:,1), mic(:,2)); % adjusted for accuracte autocorr, longer computing though
-% [val, idx] = max(r); %value and index at lags of highest value
-% est_delay = lags(idx)/fs_RIR; 
-% 
-% % --------- COPY OF TDOA TILL THIS POINT ------
-% 
-% DOA_est = acos(est_delay*c/d)*180/pi; %Tested with ground truth should be done with estimate
-% save DOA_est

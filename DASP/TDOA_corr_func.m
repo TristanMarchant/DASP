@@ -21,7 +21,7 @@ load('Computed_RIRs.mat');
 delay_groundtruth2 = (max1- max2)/fs_RIR; 
 
 %---- CREATE_MICSIGS.M ----------------%
-mic = create_micsigs_func(speechfiles,noisefiles);
+mic = create_micsigs_func(speechfiles,noisefiles,10);
 
 % --- CROSS CORRELATION ---------%
 

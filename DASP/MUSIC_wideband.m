@@ -10,25 +10,11 @@ if fs_RIR ~= 44100
     error('DASP: invalid sample frequency, should be 44100 Hz');
 end
 
-%---- TRUNCATE AUDIO -------------%
-speechfile = 'speech1.wav';
-[speech_sampled, fs_speech] = audioread(speechfile);
-speech_sampled = speech_sampled(1:fs_speech*10); %truncate 10s
-
-audiowrite('speech1_truncated10s.wav',speech_sampled,fs_speech);
-
-speechfile2 = 'speech2.wav';
-[speech_sampled, fs_speech] = audioread(speechfile2);
-speech_sampled = speech_sampled(1:fs_speech*10); %truncate 10s
-
-audiowrite('speech2_truncated10s.wav',speech_sampled,fs_speech);
-
 %---- CREATE MICSIGS ------------%
-speechfiles{1} = 'speech1_truncated10s.wav';
-speechfiles{2} = 'speech2_truncated10s.wav';
-
+speechfiles{1} = 'speech1.wav';
+speechfiles{2} = 'speech2.wav';
 noisefiles{1} = 'Babble_noise1.wav'; %best let one noise file on, even if not used
-mic = create_micsigs_func(speechfiles,noisefiles);
+mic = create_micsigs_func(speechfiles,noisefiles,10);
 mic_size = size(mic);
 mic_size1 = mic_size(1);
 mic_nb = mic_size(2);
@@ -50,6 +36,8 @@ end
 thetas = 0:0.5:180;
 n0_thetas = size(thetas,2);
 result_mult = ones(n0_thetas,1);
+figure;
+hold on
 for freq = 2:(L/2)
     
     omega = 2*pi*(freq-0.5)*fs_RIR/L;
@@ -58,8 +46,8 @@ for freq = 2:(L/2)
     R = Y * Y';
 
     [V,D] = eig(R); 
-    [~,index] = sort( diag(D), 'descend' ); 
-    V_sorted = V(:,index);
+    [~,I] = sort( diag(D), 'descend' ); 
+    V_sorted = V(:,I);
     E = V_sorted(:,(Q+1):end); 
 
     G = [ones(1,n0_thetas); zeros(mic_nb-1,n0_thetas)];
@@ -74,7 +62,7 @@ for freq = 2:(L/2)
 
     numerator = diag(G'*(E*E')*G);
     P = 1./numerator;
-    
+    plot(thetas,abs(P));
     result_mult = result_mult.*P;
 end
 exponent = 1/(L/2-1);
@@ -82,7 +70,11 @@ final = result_mult.^exponent;
 
 
 figure;
+hold on;
 plot(thetas,abs(final));
+title('Averaged Pseudospectrum')
+xlabel('Angle theta')
+ylabel('Magnitude')
 
 [~, indexes] = findpeaks(abs(final),'SortStr','descend');
 
@@ -92,6 +84,10 @@ for m = 1:Q
     DOA_est(m) = thetas(indexes(m));
 end
 
+for index = 1:Q
+    value = abs(final(DOA_est(index)*2+1));
+    stem(DOA_est(index),value);
+end
 save DOA_est
 
 %---- DOA OF SPEECH SOURCE -----%

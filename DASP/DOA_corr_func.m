@@ -29,7 +29,13 @@ groundtruth_angle = atan((-dir_vector(1))/dir_vector(2))*180/pi;
 [est_delay, ~] = TDOA_corr_func(speechfiles, noisefiles);
 
 %----- DOA CORR -------%
-DOA_est = acos(est_delay*c/m_dist)*180/pi; %Tested with ground truth should be done with estimate
+if (est_delay*c/m_dist)>1 
+    DOA_est = acosd(1);
+elseif (est_delay*c/m_dist)<-1
+    DOA_est = acosd(-1);
+else
+    DOA_est = acosd(est_delay*c/m_dist); %Tested with ground truth should be done with estimate
+end
 save DOA_est
 
 error = abs(groundtruth_angle - DOA_est);

@@ -12,6 +12,6 @@ disp(' ');
 
 %---- speech ---------------------%
 disp('SPEECH');
-speechfiles{1} = 'speech2.wav';
+speechfiles{1} = 'speech1.wav';
 noisefiles{1} = 'Babble_noise1.wav'; %just for functionality of function
 TDOA_corr_func(speechfiles, noisefiles);
