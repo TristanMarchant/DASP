@@ -18,7 +18,7 @@ load('Computed_RIRs.mat');
 % --- LOOKING FOR GROUNDTRUTH ----------------------%
 [~,max1] = max(RIR_sources(:,1));
 [~,max2] = max(RIR_sources(:,2));
-delay_groundtruth2 = (max1- max2)/fs_RIR; 
+delay_groundtruth2 = (max1 - max2)/fs_RIR; 
 
 %---- CREATE_MICSIGS.M ----------------%
 mic = create_micsigs_func(speechfiles,noisefiles,10);

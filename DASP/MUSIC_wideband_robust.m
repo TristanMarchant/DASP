@@ -70,6 +70,8 @@ exponent = 1/(L/2-1);
 final_log = exponent*result_add;
 final = exp(final_log);
 
+%---- DOA OF SPEECH SOURCE -----%
+
 figure;
 hold on
 plot(thetas,abs(final));
@@ -91,7 +93,7 @@ for index = 1:Q
 end
 save DOA_est
 
-%---- DOA OF SPEECH SOURCE -----%
+
 
 %QUESTION ABOUT REVERBERATION: GETS WAY BETTER FROM CLOSE, THERE ARE
 %MULTIPLE PEAKS NOW AND THE RIGHT PEAK GETS LARGER WHEN PUTTING THE SOURCE
