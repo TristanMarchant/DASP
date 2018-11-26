@@ -4,8 +4,9 @@
 
 load('Computed_RIRs.mat');
 
+
 speechfiles{1} = 'speech1.wav'; %number of speechfiles should be same as audiosrcs in RIR-gui
-speechfiles{2} = 'speech2.wav';
+%speechfiles{2} = 'speech2.wav';
 noisefiles{1} = 'Babble_noise1.wav'; %best let one noise file on, even if not used
 %noisefiles{2} = 'Babble_noise1.wav';
 length = 10; %desired length of the microphone signals in seconds
@@ -36,3 +37,6 @@ plot(RIR_sources(:,2), '--r');
 title('RIRs to 2 microphones');
 xlabel('samples');
 ylabel('amplitude');
+
+load('SNR_in.mat');
+display(SNR_in);

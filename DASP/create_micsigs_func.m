@@ -16,6 +16,10 @@ function [mic] = create_micsigs_func(speechfiles, noisefiles,length)
 
 load('Computed_RIRs.mat');
 
+if fs_RIR ~= 44100
+    error('DASP: invalid sample frequency, should be 44100 Hz');
+end
+
 [nb_samples, nb_mics, nb_audiosrc] = size(RIR_sources);
 [check, ~, nb_noisesrc] = size(RIR_noise);
 if check ==0
@@ -31,6 +35,7 @@ for i=1:nb_speechfiles
     [tempsize, ~] = size(speech_resampled{i});
     nb_min = min(nb_min, tempsize);
 end
+
 
 for i=1:nb_noisefiles
     [noise_sampled{i}, fs_noise{i}] = audioread(noisefiles{i});
@@ -49,20 +54,37 @@ end
 
 % ------- Compute mic signals --------- %
 
-mic = zeros(nb_min, nb_mics);
+speech = zeros(nb_min, nb_mics);
+
 
 for i=1:nb_mics
     
     for j=1:nb_audiosrc
-        mic(:,i) = mic(:,i) + fftfilt(RIR_sources(:, i, j), speech_resampled{j});
+        speech(:,i) = speech(:,i) + fftfilt(RIR_sources(:, i, j), speech_resampled{j});
     end
-    
-    
-    for j=1:nb_noisesrc
-        mic(:,i) = mic(:,i) + fftfilt(RIR_noise(:, i, j), noise_resampled{j});
-    end
+        
 end
 
-save mic.mat mic fs_RIR
+VAD = abs(speech(:,1))>std(speech(:,1))*1e-3;
+power_samples = speech(VAD==1,1);
+power = var(power_samples);
+noise = wgn(nb_min,nb_mics,10*log10(0.1*power));
 
+for i=1:nb_mics
+    
+    for j=1:nb_noisesrc
+        noise(:,i) = noise(:,i) + fftfilt(RIR_noise(:, i, j), noise_resampled{j});
+    end
+    
+end
+
+mic = speech+noise;
+
+SNR_in = 10*log10(var(speech(VAD==1,1))/var(noise(:,1)));
+
+save('speech')
+save('noise')
+save('mic')
+save('SNR_in')
+save('fs_RIR')
 
