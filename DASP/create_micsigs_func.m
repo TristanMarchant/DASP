@@ -87,4 +87,5 @@ save('noise')
 save('mic')
 save('SNR_in')
 save('fs_RIR')
+save('VAD')
 
