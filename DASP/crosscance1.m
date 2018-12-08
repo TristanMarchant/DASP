@@ -61,8 +61,10 @@ X(indexH==0,:) = [];
 %g_left = H_left\xL;
 %g_right = H_right\xR;
 
+
 g =  H \ X;
 %% PLOTZORZ
+
 figure;
 hold on;
 %plot(1:(400+length_HRTF-1 - length(index)),H_left*g_left,'b');
@@ -81,7 +83,7 @@ disp(synth_error);
 
 %% READING FILE
 fs_target = 8000;
-length = 10;
+length = 10; %in seconds
 [speech_sampled, fs_speech] = audioread('speech1.wav');
 speech_resampled = resample(speech_sampled, fs_target, fs_speech);
 speech_cut = speech_resampled(1:fs_target*length);
@@ -94,6 +96,7 @@ for i = 1:nb_audiosrc
 end
 
 
+
 %start_signal = fftfilt(g,speech_cut);
 for i=1:nb_mics
     
@@ -101,6 +104,7 @@ for i=1:nb_mics
         binaural_sig(:,i) = binaural_sig(:,i) + fftfilt(RIR_sources(:, i, j), speechfiles{j});
     end
         
+
 end
     
 soundsc([binaural_sig(:,1) binaural_sig(:,2)],fs_target);
