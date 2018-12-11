@@ -2,29 +2,43 @@ clear
 load('Computed_RIRs.mat');
 load('HRTF');
 [nb_samples, nb_mics, nb_audiosrc] = size(RIR_sources);
-length_RIR = 1500;
-length_HRTF = 1000;
-RIR_sources_cut = RIR_sources(1:length_RIR,:,:);
-xL = HRTF(:,1);
-xL = xL(1:length_RIR+length_HRTF-1);
-xR = HRTF(:,2);
-xR = xR(1:length_RIR+length_HRTF-1);
+Lh = 1500; %Lh
+Lg = 1000; %Lg
+RIR_sources_cut = RIR_sources(1:Lh,:,:);
 
-%xL = [ 1 ; zeros(length_RIR+length_HRTF-2,1)];
-%xR = [ 1 ; zeros(length_RIR+length_HRTF-2,1)];
+
+xL = [ 1 ; zeros(Lh+Lg-2,1)];
+xR = [ 1 ; zeros(Lh+Lg-2,1)];
+
+situation = 3; %CONTROL FOR THE SITUATIONS
+
+if situation == 1
+    xL = xL;
+    
+elseif situation == 2
+    xR = .5*xR;
+    
+elseif situation == 3
+    xR = circshift(xR,3);
+    
+elseif situation == 4
+    xL = HRTF(:,1);
+    xL = xL(1:Lh+Lg-1);
+    xR = HRTF(:,2);
+    xR = xR(1:Lh+Lg-1);
+end
 
 Delta = ceil(sqrt(room_dim(1)^2+room_dim(2)^2)*fs_RIR/340);
 xL = circshift(xL,Delta);
 xR = circshift(xR,Delta);
-%X = [xL ; xR];
-%X = circshift(X, Delta);
+
 %% H matrix
 H_left = [];
 H_right = [];
 H = [];
 for i = 1:nb_audiosrc
-    H_left = [H_left convmtx(RIR_sources_cut(:,1,i),length_HRTF)];
-    H_right = [H_right convmtx(RIR_sources_cut(:,2,i),length_HRTF)];
+    H_left = [H_left convmtx(RIR_sources_cut(:,1,i),Lg)];
+    H_right = [H_right convmtx(RIR_sources_cut(:,2,i),Lg)];
     %H = [H [convmtx(RIR_sources_cut(:,1,i),length_HRTF); convmtx(RIR_sources_cut(:,2,i),length_HRTF)]];
 end
 X = [xL ; xR];
@@ -34,6 +48,20 @@ H = [H_left ; H_right];
 indexH = any(H,2);
 H(indexH==0,:) = [];
 X(indexH==0,:) = [];
+
+%% ADD NOISE TO H
+add_noise = 0;
+
+if add_noise
+    std_H_col1 = std(H(:,1));
+    std_noise = 0.05*std_H_col1;
+    power_noise = std_noise^2;
+    [m,n] = size(H);
+    noise = wgn(m, n, power_noise);
+    H = H + noise; %note: the 0s are noised too this way
+end
+
+%% COMPUTE G
 % for i = 1:length(index)
 %     %H_left(index(i),:) = [];
 %     %H_right(index(i),:) = [];
@@ -63,6 +91,7 @@ X(indexH==0,:) = [];
 
 
 g =  H \ X;
+
 %% PLOTZORZ
 
 figure;
@@ -92,21 +121,23 @@ speech_cut = speech_resampled(1:fs_target*length);
 binaural_sig = zeros(size(speech_cut,1),nb_mics);
 
 for i = 1:nb_audiosrc
-    speechfiles{i} = fftfilt(g((i-1)*length_HRTF+1:i*length_HRTF),speech_cut);
+    speechfiles{i} = fftfilt(g((i-1)*Lg+1:i*Lg), speech_cut);
 end
-
-
 
 %start_signal = fftfilt(g,speech_cut);
 for i=1:nb_mics
-    
     for j=1:nb_audiosrc
-        binaural_sig(:,i) = binaural_sig(:,i) + fftfilt(RIR_sources(:, i, j), speechfiles{j});
+        binaural_sig(:,i) = binaural_sig(:,i) + fftfilt(RIR_sources(:, i, j), speechfiles{j}); %speechfiles{j}
     end
-        
-
 end
+
+% for i=1:nb_mics
+%     for j=1:nb_audiosrc
+%         temp = fftfilt(RIR_sources(:, i, j), speech_cut);
+%         temp = fftfilt(g((j-1)*length_HRTF+1:j*length_HRTF), temp);
+%         binaural_sig(:,i) = binaural_sig(:,i) + temp;
+%     end
+% end
+
     
 soundsc([binaural_sig(:,1) binaural_sig(:,2)],fs_target);
-
-

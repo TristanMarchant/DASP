@@ -13,7 +13,7 @@ end
 %---- CREATE MICSIGS ------------%
 speechfiles{1} = 'speech1.wav';
 speechfiles{2} = 'speech2.wav';
-noisefiles{1} = 'Babble_noise1.wav'; %best let one noise file on, even if not used
+noisefiles{1} = 'speech2.wav'; %best let one noise file on, even if not used
 mic = create_micsigs_func(speechfiles,noisefiles,10);
 mic_size = size(mic);
 mic_size1 = mic_size(1);
