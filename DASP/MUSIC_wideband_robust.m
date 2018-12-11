@@ -4,6 +4,9 @@ load('Computed_RIRs.mat');
 L = 1024; %window
 overlap = 0.5;
 Q = size(RIR_sources,3);
+if size(RIR_noise,1) > 1
+    Q = Q + size(RIR_noise,3);
+end
 
 %---- CHECK FOR SAMPLE FREQ-------%
 if fs_RIR ~= 44100
@@ -12,8 +15,8 @@ end
 
 %---- CREATE MICSIGS ------------%
 speechfiles{1} = 'speech1.wav';
-speechfiles{2} = 'speech2.wav';
-noisefiles{1} = 'Babble_noise1.wav'; %best let one noise file on, even if not used
+speechfiles{2} = 'speech1.wav';
+noisefiles{1} = 'White_noise1.wav'; %best let one noise file on, even if not used
 mic = create_micsigs_func(speechfiles,noisefiles,10);
 mic_size = size(mic);
 mic_size1 = mic_size(1);

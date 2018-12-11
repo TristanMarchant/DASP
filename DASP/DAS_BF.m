@@ -1,5 +1,5 @@
 clear
-run('MUSIC_wideband');
+run('MUSIC_wideband_robust');
 load('DOA_est')
 load('Computed_RIRs.mat')
 load('VAD')
@@ -7,10 +7,15 @@ load('VAD')
 [nb_samples, nb_mics, nb_audiosrc] = size(RIR_sources);
 delays = zeros(1,nb_mics);
 delays(1) = 0; 
+target = 90;
+
+[~,idx] = min(abs(DOA_est-target));
+DOA_target = DOA_est(idx);
+
 
 for i = 2:nb_mics
     distance = m_pos(i,2) - m_pos(1,2);
-    delays(i) = round(Calculate_TDOA(DOA_est,distance)*fs_RIR);
+    delays(i) = round(Calculate_TDOA(DOA_target,distance)*fs_RIR);
 end
 
 
@@ -25,7 +30,7 @@ for i = 1:nb_mics
     DAS_speech = DAS_speech + circshift(speech(:,i),delays(i));
     DAS_noise = DAS_noise + circshift(noise(:,i), delays(i));
 end
-%assert(isequal(DAS_out,(DAS_speech + DAS_noise)));
+
 
 DAS_out = DAS_out/5;
 
@@ -33,8 +38,6 @@ figure;
 hold on;
 plot(1:nb_min,mic(:,1),'b');
 plot(1:nb_min,DAS_out,'r');
-
-%VAD = abs(DAS_out(:,1))>std(DAS_out(:,1))*1e-3; % Heeft maar 0.01 SNR invloed, dus mss niet meer nodig
 
 DAS_out_SNR = 10*log10(var(DAS_speech(VAD==1,1))/var(DAS_noise));
 
